@@ -14,17 +14,32 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tbl_todo")
 public class Todo {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String todoId;
+
     @Column(nullable = false, length = 30)
-    private String title; //할앨
-
-    private boolean done; //완료여부
-
+    private String title; // 할 일
+    
+    private boolean done; // 할 일 완료 여부
+    
     @CreationTimestamp
-    private LocalDateTime createDate;
-
-
+    private LocalDateTime createDate; // 등록 시간
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

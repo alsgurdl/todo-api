@@ -37,4 +37,3 @@ public class P6SpySqlFormatter implements MessageFormattingStrategy {
     }
 
 }
-
