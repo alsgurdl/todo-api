@@ -6,7 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Setter@Getter@ToString
+@Setter @Getter @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,22 +15,31 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tbl_user")
 public class User {
-@Id
-@Column(name = "user_id")
-@GeneratedValue(strategy = GenerationType.UUID)
-private String id; // 식별코드
+
+    @Id
+    @Column(name = "user_id")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id; // 계정명이 아니라 식별 코드
 
     @Column(nullable = false, unique = true)
-private String email;
-
-@Column(nullable = false)
-private String password;
+    private String email;
 
     @Column(nullable = false)
-private  String userName;
+    private String password;
 
-@CreationTimestamp
-private LocalDateTime joinDate;
+    @Column(nullable = false)
+    private String userName;
 
+    @CreationTimestamp
+    private LocalDateTime joinDate;
 
 }
+
+
+
+
+
+
+
+
+
