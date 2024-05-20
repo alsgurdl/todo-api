@@ -1,5 +1,6 @@
 package com.example.todo.userapi.api;
 
+import com.example.todo.userapi.dto.request.LoginRequestDTO;
 import com.example.todo.userapi.dto.request.UserSignUpRequestDTO;
 import com.example.todo.userapi.dto.response.UserSignUpResponseDTO;
 import com.example.todo.userapi.service.UserService;
@@ -61,6 +62,24 @@ public class UserController {
     // 서비스로 넘겨서, 로그인 유효성을 검증하세요. (비밀번호 암호화되어 있어요.)
     // 로그인 결과를 응답 상태 코드로 구분해서 보내 주세요.
     // 로그인이 성공했다면 200, 로그인 실패라면 400을 보내주세요 (에러 메세지를 상황에 따라 다르게 전달해 주세요.)
+    @PostMapping("/signin")
+    public ResponseEntity<?> signIn(
+            @Validated @RequestBody LoginRequestDTO dto,
+            BindingResult result
+    ) {
+        log.info("/api/auth/signin - POST - {}", dto);
+
+        ResponseEntity<FieldError> response = getFieldErrorResponseEntity(result);
+        if (response != null) return response;
+
+        try {
+            String authenticate = userService.authenticate(dto);
+            return ResponseEntity.ok().body(authenticate);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
 
 
 
