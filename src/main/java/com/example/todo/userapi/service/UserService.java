@@ -1,7 +1,9 @@
 package com.example.todo.userapi.service;
 
+import com.example.todo.auth.TokenProvider;
 import com.example.todo.userapi.dto.request.LoginRequestDTO;
 import com.example.todo.userapi.dto.request.UserSignUpRequestDTO;
+import com.example.todo.userapi.dto.response.LoginResponseDTO;
 import com.example.todo.userapi.dto.response.UserSignUpResponseDTO;
 import com.example.todo.userapi.entity.User;
 import com.example.todo.userapi.repository.UserRepository;
@@ -11,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final TokenProvider tokenProvider;
     public boolean isDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
             log.warn("이메일이 중복되었습니다. - {}", email);
@@ -51,7 +51,7 @@ public class UserService {
     }
 
 
-    public String authenticate(final LoginRequestDTO dto) throws Exception {
+    public LoginResponseDTO authenticate(final LoginRequestDTO dto) throws Exception {
 
         // 이메일을 통해 회원 정보 조회
         User user = userRepository.findByEmail(dto.getEmail())
@@ -70,7 +70,9 @@ public class UserService {
         // 로그인 성공 후에 클라이언트에게 뭘 리턴해 줄 것인가?
         // -> JWT를 클라이언트에 발급해 주어야 한다! -> 로그인 유지를 위해!
 
-        return "SUCCESS";
+        String token = tokenProvider.createToken(user);
+
+        return new LoginResponseDTO(user, token);
 
     }
 }
