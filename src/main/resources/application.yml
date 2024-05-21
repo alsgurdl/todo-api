@@ -8,8 +8,8 @@ spring:
     name: todo
   datasource:
     url: jdbc:mysql://localhost:3306/jpa?serverTimezone=Asia/Seoul
-    username: spring
-    password: spring
+    username: root
+    password: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -22,10 +22,8 @@ springdoc:
   swagger-ui:
     path: /myapi.html
 
-
     jwt:
       secret: BPCmlGeQCl8BHlg0F2ldUlvglgzNoryhV5TJx1pgPtNtbWiKLBrmtgwjb5Xthwa5X1xmDAuiVUcDbJ6m2xHuXg==
-
 
 
 
