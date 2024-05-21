@@ -74,15 +74,14 @@ public class UserController {
         if (response != null) return response;
 
         try {
-            LoginResponseDTO authenticate = userService.authenticate(dto);
-            return ResponseEntity.ok().body(authenticate);
+            LoginResponseDTO responseDTO = userService.authenticate(dto);
+            return ResponseEntity.ok().body(responseDTO);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
+           return ResponseEntity.badRequest().body(e.getMessage());
         }
 
     }
-
 
 
 

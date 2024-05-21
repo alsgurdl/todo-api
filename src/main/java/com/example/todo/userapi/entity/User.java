@@ -35,7 +35,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private Role role = Role.COMMON; //유저 권한
+    private Role role = Role.COMMON; // 유저 권한
 
 }
 
