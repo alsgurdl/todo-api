@@ -1,6 +1,8 @@
 package com.example.todo.auth;
 
+import com.example.todo.userapi.entity.Role;
 import com.example.todo.userapi.entity.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -67,6 +69,22 @@ public class TokenProvider {
                 .compact();
     }
 
+    public void validateAndGetTokenUserInfo(String token) {
+        Claims claims = Jwts.parserBuilder()
+                //토큰 발급자의 발급 당시의 서명
+                .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+                //서명위조 겁사
+
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        log.info("clames{}", claims);
+        return TokenUserInfo.builder()
+                .userId(claims.getSubject())
+                .email(claims.get("email",String.class))
+                .role(Role.valueOf(claims.get(("role{}", String.class))))
+                .build();
+    }
 }
 
 
