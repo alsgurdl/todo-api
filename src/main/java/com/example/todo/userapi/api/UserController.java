@@ -143,7 +143,12 @@ public class UserController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    @GetMapping("/kakaologin")
+    public ResponseEntity<?> kakaoLogin(String code) {
+        log.info("/api/auth/kakaoLogin - GET! code: {}", code);
+        userService.kakaoService(code);
     }
 
     private MediaType findExtensionAndGetMediaType(String filePath) {
@@ -165,11 +170,7 @@ public class UserController {
                 return null;
         }
     }
-@GetMapping("/kakaologin")
-public ResponseEntity<?> kakaoLogin(String code){
-        log.info("api.auth/ kakao GET {}", code);
-        userService.kakaoService(code);
-}
+
 
     private static ResponseEntity<FieldError> getFieldErrorResponseEntity(BindingResult result) {
         if (result.hasErrors()) {

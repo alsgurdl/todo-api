@@ -31,11 +31,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+
     @Value("${kakao.client_id}")
-private String KAKAO_CLIENT_ID;
-    @Value()
-private String KAKAO_REDIRECT_URL;
-private String KAKAO_CLIENT_SECRET;
+    private String KAKAO_CLIENT_ID;
+    @Value("${kakao.redirect_url}")
+    private String KAKAO_REDIRECT_URL;
+    @Value("${kakao.client_secret}")
+    private String KAKAO_CLIENT_SECRET;
+
     @Value("${upload.path}")
     private String uploadRootPath;
 
@@ -144,5 +147,8 @@ private String KAKAO_CLIENT_SECRET;
     }
 
     public void kakaoService(String code) {
+
+
+
     }
 }
