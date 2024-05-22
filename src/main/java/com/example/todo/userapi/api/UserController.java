@@ -165,7 +165,11 @@ public class UserController {
                 return null;
         }
     }
-
+@GetMapping("/kakaologin")
+public ResponseEntity<?> kakaoLogin(String code){
+        log.info("api.auth/ kakao GET {}", code);
+        userService.kakaoService(code);
+}
 
     private static ResponseEntity<FieldError> getFieldErrorResponseEntity(BindingResult result) {
         if (result.hasErrors()) {
