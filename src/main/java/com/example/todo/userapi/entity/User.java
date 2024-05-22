@@ -6,7 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Setter @Getter @ToString
+@Getter @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,6 +37,11 @@ public class User {
     @Builder.Default
     private Role role = Role.COMMON; // 유저 권한
 
+
+    //등급 수정 메서드(직접 메서드를 작성)
+    public void  changeRole(Role role){
+        this.role = role;
+    }
 }
 
 

@@ -38,19 +38,8 @@ public class TodoController {
         ResponseEntity<List<FieldError>> validatedResult = getValidatedResult(result);
         if (validatedResult != null) return validatedResult;
 
-        try {
-            TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo.getUserId());
-            return ResponseEntity
-                    .ok()
-                    .body(responseDTO);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity
-                    .internalServerError()
-                    .body(TodoListResponseDTO.builder()
-                            .error(e.getMessage())
-                            .build());
-        }
+        TodoListResponseDTO responseDTO = todoService.create(requestDTO, userInfo.getUserId());
+        return ResponseEntity.ok().body(responseDTO);
     }
 
     // 할 일 목록 요청
@@ -128,19 +117,3 @@ public class TodoController {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
