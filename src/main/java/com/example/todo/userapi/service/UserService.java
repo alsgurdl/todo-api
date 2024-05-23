@@ -149,57 +149,78 @@ public class UserService {
 
 
     public String findProfilePath(String userId) {
-        User user
+        User user 
                 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException());
+        String profileImg = user.getProfileImg();
+        if (profileImg.startsWith("http://")) {
+            return profileImg;
+        }
         // DB에는 파일명만 저장. -> service가 가지고 있는 Root Path와 연결해서 리턴
-        return uploadRootPath + "/" + user.getProfileImg();
+        return uploadRootPath + "/" + profileImg;
     }
 
-    public void kakaoService(String code) {
-    //인가 코드를 통해 토큰을 발급받기
+    public LoginResponseDTO kakaoService(String code) {
+        // 인가 코드를 통해 토큰을 발급받기
         String accessToken = getKakaoAccessToken(code);
-        log.info("token: {}",accessToken);
-
-        //토큰을 통해 사용자 정보를 가져오기
+        log.info("token: {}", accessToken);
+        
+        // 토큰을 통해 사용자 정보를 가져오기
         KakaoUserDTO userDTO = getKakaoUserInfo(accessToken);
+        log.info("userDTO: {}", userDTO);
 
-        //일회성 로그인으로 처리 > dto를 바로 화면단에 리턴
-        //회원 가입처리 > 이메일 중복 검사 진행 > 사체 jwt를 생성해서 토큰을 화면단에 리턴
-        // > 화면단에서는 적절한 url을 선택하여 redirect 진행
+        // 일회성 로그인으로 처리 -> dto를 바로 화면단에 리턴
+        // 회원가입 처리 -> 이메일 중복 검사 진행 -> 자체 jwt를 생성해서 토큰을 화면단에 리턴.
+        // -> 화면단에서는 적절한 url을 선택하여 redirect를 진행.
 
+        if (!isDuplicate(userDTO.getKakaoAccount().getEmail())) {
+            // 이메일이 중복되지 않았다. -> 이전에 로그인 한 적 없음 -> DB에 데이터를 세팅
+            User saved = userRepository.save(userDTO.toEntity(accessToken));
+        }
+        // 이메일이 중복됐다? -> 이전에 로그인 한 적이 있다. -> DB에 데이터를 또 넣을 필요는 없다.
+        User foundUser
+                = userRepository.findByEmail(userDTO.getKakaoAccount().getEmail()).orElseThrow();
 
+        // 우리 사이트에서 사용하는 jwt를 생성.
+        String token = tokenProvider.createToken(foundUser);
+
+        // 기존에 로그인했던 사용자의 access token값을 update
+        foundUser.changeAccessToken(accessToken);
+        userRepository.save(foundUser);
+
+        return new LoginResponseDTO(foundUser, token);
     }
 
     private KakaoUserDTO getKakaoUserInfo(String accessToken) {
-        //요청 uri
+        // 요청 uri
         String requestURI = "https://kapi.kakao.com/v2/user/me";
 
-        //쵸청해더 설정
+        // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization","Bearer "+ accessToken);
-        headers.add("Content-type","application/x-www-form-urlencoded;charset=utf-8");
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-        //요청 보내기
+        // 요청 보내기
         RestTemplate template = new RestTemplate();
         ResponseEntity<KakaoUserDTO> responseEntity
                 = template.exchange(requestURI, HttpMethod.GET, new HttpEntity<>(headers), KakaoUserDTO.class);
+
+        // 응답 바디 꺼내기
         KakaoUserDTO responseData = responseEntity.getBody();
-    log.info("user profile: {}",responseData);
-    return responseData;
+        log.info("user profile: {}", responseData);
 
-
+        return responseData;
     }
 
     private String getKakaoAccessToken(String code) {
 
-        //요청uri
+        // 요청 uri
         String requestURI = "https://kauth.kakao.com/oauth/token";
 
-        //쵸청해더 설정
+        // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type","application/x-www-form-urlencoded;charset=utf-8");
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-        //요청 바디(파라미터) 설정
+        // 요청 바디(파라미터) 설정
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code"); // 카카오 공식 문서 기준 값으로 세팅
         params.add("client_id", KAKAO_CLIENT_ID); // 카카오 디벨로퍼 REST API 키
@@ -207,10 +228,13 @@ public class UserService {
         params.add("code", code); // 프론트에서 인가 코드 요청시 전달받은 코드값
         params.add("client_secret", KAKAO_CLIENT_SECRET); // 카카오 디벨로퍼 client secret(활성화 시 추가해 줘야 함)
 
-        //해더와 바디정보 함치기
+        // 헤더와 바디 정보를 합치기 위해 HttpEntity 객체 생성
         HttpEntity<Object> requestEntity = new HttpEntity<>(params, headers);
+
+        // 카카오 서버로 POST 통신
         RestTemplate template = new RestTemplate();
-// 통신을 보내면서 응답데이터를 리턴
+
+        // 통신을 보내면서 응답 데이터를 리턴
         // param1: 요청 url
         // param2: 요청 메서드 (전송 방식)
         // param3: 헤더와 요청 파라미터정보 엔터티
@@ -218,26 +242,61 @@ public class UserService {
         // 만약 구조가 복잡한 경우에는 응답 데이터 타입을 String으로 받아서 JSON-simple 라이브러리로 직접 해체.
         ResponseEntity<Map> responseEntity
                 = template.exchange(requestURI, HttpMethod.POST, requestEntity, Map.class);
+
         /*
-        * HTTP/1.1 200 OK
+        HTTP/1.1 200 OK
         Content-Type: application/json;charset=UTF-8
         {
-         "token_type":"bearer",
-         "access_token":"${ACCESS_TOKEN}",
-         "expires_in":43199,
-         "refresh_token":"${REFRESH_TOKEN}",
-         "refresh_token_expires_in":5184000,
-          "scope":"account_email profile"
+            "token_type":"bearer",
+            "access_token":"${ACCESS_TOKEN}",
+            "expires_in":43199,
+            "refresh_token":"${REFRESH_TOKEN}",
+            "refresh_token_expires_in":5184000,
+            "scope":"account_email profile"
         }
-        * */
+         */
 
-        //응답 데이터에서 필요한 정보를 가져오기
-        Map<String,Object >responseData = (Map <String,Object>)responseEntity.getBody();
-        log.info("토큰 데이터 {}", responseData);
+        // 응답 데이터에서 필요한 정보를 가져오기
+        Map<String, Object> responseData = (Map<String, Object>) responseEntity.getBody();
+        log.info("토큰 요청 응답 데이터: {}", responseData);
 
-        //여러가지 데이터 중 access_token이라는 이름의 데이터를 리턴
-        //Object타입을 string으로 형 변환해서 리턴
+        // 여러가지 데이터 중 access_token이라는 이름의 데이터를 리턴
+        // Object를 String으로 형 변환해서 리턴.
         return (String) responseData.get("access_token");
+    }
 
+    public String logout(TokenUserInfo userInfo) {
+        User foundUser = userRepository.findById(userInfo.getUserId())
+                .orElseThrow();
+
+        String accessToken = foundUser.getAccessToken();
+        // accessToken이 null이 아니라면 카카오 로그인을 한 애겠지?
+        if (accessToken != null) {
+            String reqURI = "https://kapi.kakao.com/v1/user/logout";
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
+
+            ResponseEntity<String> responseData
+                    = new RestTemplate().exchange(reqURI, HttpMethod.POST, new HttpEntity<>(headers), String.class);
+            foundUser.changeAccessToken(null);
+            userRepository.save(foundUser);
+
+            return responseData.getBody();
+        }
+
+        return null;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
