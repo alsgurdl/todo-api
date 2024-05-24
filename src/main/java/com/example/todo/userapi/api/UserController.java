@@ -9,6 +9,7 @@ import com.example.todo.userapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -97,7 +99,7 @@ public class UserController {
     @PutMapping("/promote")
     // 권한 검사 (해당 권한이 아니라면 인가처리 거부 -> 403 상태 리턴)
     // 메서드 호출 전에 검사 -> 요청 당시 토큰에 있는 user 정보가 ROLE_COMMON이라는 권한을 가지고 있는지를 검사.
-    @PreAuthorize("hasRole('ROLE_COMMON')")
+    // @PreAuthorize("hasRole('ROLE_COMMON')")
     public ResponseEntity<?> promote(
             @AuthenticationPrincipal TokenUserInfo userInfo
             ) {
@@ -168,6 +170,17 @@ public class UserController {
 
         String result = userService.logout(userInfo);
         return ResponseEntity.ok().body(result);
+    }
+
+    // 리프레쉬 토큰을 활용한 액세스 토큰 재발급 요청
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> tokenRequest) {
+        log.info("/api/auth/refresh: POST! - tokenRequest: {}", tokenRequest);
+        String renewalAccessToken = userService.renewalAccessToken(tokenRequest);
+        if (renewalAccessToken != null) {
+            return ResponseEntity.ok().body(Map.of("accessToken", renewalAccessToken));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
     }
 
 
