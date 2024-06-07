@@ -2,6 +2,9 @@ package com.jap;
 import jakarta.persistence.*;
 
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 
 @Getter
@@ -12,8 +15,9 @@ import lombok.*;
 @Builder
 
 @Entity
-@Table(name = "tbl_article_comments")
-public class ArticleComments {
+@Table(name = "tbl_local_chat")
+public class PostComments {
+
     //댓글 번호
     @Id
     @Column(name = "comment_no")
@@ -25,13 +29,16 @@ public class ArticleComments {
     @JoinColumn(name = "user_no")
     private User user;
 
-    //기사코드
+    //게시글번호
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "article_code")
-    private Article article;
+    @JoinColumn(name = "post_no")
+    private BoardPost boardPost;
 
     //내용
-    @Column(name = "text", length = 500)
     private String text;
 
+    //작성 날짜
+    @CreationTimestamp
+    @Column(name = "write_date")
+    private LocalDateTime writeDate;
 }
