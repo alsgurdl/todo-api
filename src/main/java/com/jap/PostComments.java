@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 
 @Entity
-@Table(name = "tbl_local_chat")
+@Table(name = "tbl_post_comments")
 public class PostComments {
 
     //댓글 번호
